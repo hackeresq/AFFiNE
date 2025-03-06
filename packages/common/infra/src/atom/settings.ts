@@ -1,7 +1,7 @@
 import { DebugLogger } from '@affine/debug';
 import { setupGlobal } from '@affine/env/global';
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
+import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 import { atomEffect } from 'jotai-effect';
 
 setupGlobal();
@@ -22,15 +22,20 @@ export const windowFrameStyleOptions: AppSetting['windowFrameStyle'][] = [
   'NativeTitleBar',
 ];
 
-const appSettingBaseAtom = atomWithStorage<AppSetting>('affine-settings', {
-  clientBorder: BUILD_CONFIG.isElectron && !environment.isWindows,
-  windowFrameStyle: 'frameless',
-  enableBlurBackground: true,
-  enableNoisyBackground: true,
-  autoCheckUpdate: true,
-  autoDownloadUpdate: true,
-  enableTelemetry: true,
-});
+const appSettingBaseAtom = atomWithStorage<AppSetting>(
+  'affine-settings',
+  {
+    clientBorder: BUILD_CONFIG.isElectron && !environment.isWindows,
+    windowFrameStyle: 'frameless',
+    enableBlurBackground: true,
+    enableNoisyBackground: true,
+    autoCheckUpdate: true,
+    autoDownloadUpdate: true,
+    enableTelemetry: true,
+  },
+  createJSONStorage(() => localStorage),
+  { getOnInit: true }
+);
 
 type SetStateAction<Value> = Value | ((prev: Value) => Value);
 

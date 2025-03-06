@@ -8,16 +8,14 @@ import {
 } from 'react-router-dom';
 
 function createSentry() {
-  let enabled = true;
+  let enabled = false;
   const wrapped = {
     init() {
       // https://docs.sentry.io/platforms/javascript/guides/react/#configure
       Sentry.init({
-        enabled: enabled,
-        dsn: process.env.SENTRY_DSN,
         debug: BUILD_CONFIG.debug ?? false,
         environment: process.env.BUILD_TYPE ?? 'development',
-        integrations: [
+        defaultIntegrations: [
           Sentry.reactRouterV6BrowserTracingIntegration({
             useEffect,
             useLocation,
@@ -38,11 +36,33 @@ function createSentry() {
     },
     enable() {
       enabled = true;
+      // dynamically add integrations once enabled
+      integrations.forEach(integration => Sentry.addIntegration(integration));
     },
     disable() {
       enabled = false;
+      // recreate the Sentry client with default settings
+      this.init();
     },
   };
+
+  // The Sentry browser session integration does not hook into beforeSend()
+  // this custom Sentry integration manually disables the client at runtime
+  const disableBrowserSessionIntegration = () => {
+    return {
+      name: 'DisableBrowserSessionIntegration',
+      setup(client: Sentry.BrowserClient) {
+        client.on('beforeSendSession', () => {
+          client.getOptions().enabled = enabled;
+        });
+      },
+    };
+  };
+
+  const integrations = [
+    disableBrowserSessionIntegration(),
+    ...Sentry.getDefaultIntegrations({}),
+  ];
 
   return wrapped;
 }
