@@ -3,6 +3,7 @@
   "short_name": "AFFiNE",
   "description": "AFFiNE is a workspace with fully merged docs, whiteboards and databases. Get more things done, your creativity isn’t monotone.",
   "start_url": "/?source=pwa",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
